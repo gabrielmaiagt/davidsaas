@@ -28,7 +28,7 @@ export async function uploadFileToStorage(file: File, folder: string): Promise<s
   return `https://storage.googleapis.com/${bucket.name}/${filename}`;
 }
 
-export async function createCreativeAction(state: any, formData: FormData) {
+export async function createCreativeAction(state: any, formData: FormData, redirectResponse: boolean = true) {
   const campaignId = formData.get('campaignId') as string;
   const title = formData.get('title') as string;
   const description = formData.get('description') as string;
@@ -37,9 +37,9 @@ export async function createCreativeAction(state: any, formData: FormData) {
   const category = formData.get('category') as string;
   const tagsStr = formData.get('tags') as string;
   const skuInput = formData.get('sku') as string;
-  const status = formData.get('status') as string;
-  const condition = formData.get('condition') as string;
-  const availability = formData.get('availability') as string;
+  const status = formData.get('status') as string || 'active';
+  const condition = formData.get('condition') as string || 'new';
+  const availability = formData.get('availability') as string || 'in stock';
   const price = formData.get('price') ? Number(formData.get('price')) : null;
 
   const videoFile = formData.get('video') as File;
@@ -76,7 +76,10 @@ export async function createCreativeAction(state: any, formData: FormData) {
   await db.collection('creatives').add(creative);
   
   revalidatePath('/dashboard/creatives');
-  redirect('/dashboard/creatives');
+  if (redirectResponse) {
+    redirect('/dashboard/creatives');
+  }
+  return { success: true, creativeId: generatedSku };
 }
 
 export async function deleteCreativeAction(id: string) {

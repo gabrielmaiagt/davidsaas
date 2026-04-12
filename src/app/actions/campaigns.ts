@@ -9,6 +9,11 @@ const DEFAULT_ORG = 'dev-org';
 
 export async function createCampaignAction(state: any, formData: FormData) {
   const name = formData.get('name') as string;
+  const defaultLink = formData.get('defaultLink') as string;
+  const defaultPrice = Number(formData.get('defaultPrice')) || 19.90;
+  const currency = formData.get('currency') as string || 'BRL';
+  const brand = formData.get('brand') as string || 'Premium Store';
+  const category = formData.get('category') as string || 'Anúncios';
   
   const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
   
@@ -27,6 +32,11 @@ export async function createCampaignAction(state: any, formData: FormData) {
       name,
       slug,
       isDefault,
+      defaultLink,
+      defaultPrice,
+      currency,
+      brand,
+      category,
       organizationId: DEFAULT_ORG,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

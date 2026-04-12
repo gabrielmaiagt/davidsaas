@@ -16,8 +16,9 @@ export async function createXML(creatives: any[], campaignsMap: any) {
   root.ele('description').txt('Products feed for direct response ads');
 
   creatives.forEach(item => {
-    const defaultUrl = campaignsMap[item.campaignId]?.name ? `https://creative-feed.local/campaign/${campaignsMap[item.campaignId].slug}` : '';
-    const link = item.finalUrl || defaultUrl || 'https://creative-feed.local/product';
+    const campaign = campaignsMap[item.campaignId] || {};
+    const defaultUrl = campaign.defaultLink || '';
+    const link = item.finalUrl || defaultUrl || 'https://creative-feed.local';
 
     const xmlItem = root.ele('item');
     xmlItem.ele('g:id').txt(item.sku || item.id);
@@ -25,12 +26,17 @@ export async function createXML(creatives: any[], campaignsMap: any) {
     xmlItem.ele('g:description').txt(item.description || item.title);
     xmlItem.ele('g:link').txt(link);
     xmlItem.ele('g:image_link').txt(item.imageUrl || '');
-    if (item.videoUrl) xmlItem.ele('g:video_link').txt(item.videoUrl); // TikTok uses video_link or video_url
-    xmlItem.ele('g:availability').txt(item.availability || 'in stock');
-    xmlItem.ele('g:condition').txt('new');
-    if (item.price) xmlItem.ele('g:price').txt(`${item.price} USD`);
-    xmlItem.ele('g:brand').txt(item.brand || 'Generic');
-    xmlItem.ele('g:product_type').txt(item.category || '');
+    if (item.videoUrl) xmlItem.ele('g:video_link').txt(item.videoUrl);
+    xmlItem.ele('g:availability').txt(item.availability || campaign.availability || 'in stock');
+    xmlItem.ele('g:condition').txt(item.condition || campaign.condition || 'new');
+    
+    // Preço inteligente: Usa o do item ou o padrão da campanha (ex: 19.90 BRL)
+    const priceVal = item.price || campaign.defaultPrice || 19.90;
+    const currencyVal = campaign.currency || 'BRL';
+    xmlItem.ele('g:price').txt(`${priceVal} ${currencyVal}`);
+    
+    xmlItem.ele('g:brand').txt(item.brand || campaign.brand || 'Premium Store');
+    xmlItem.ele('g:product_type').txt(item.category || campaign.category || 'General');
   });
 
   return root.end({ prettyPrint: true });
@@ -38,19 +44,23 @@ export async function createXML(creatives: any[], campaignsMap: any) {
 
 function createCSV(creatives: any[], campaignsMap: any) {
   const data = creatives.map(item => {
-    const defaultUrl = campaignsMap[item.campaignId]?.name ? `https://creative-feed.local/campaign/${campaignsMap[item.campaignId].slug}` : '';
+    const campaign = campaignsMap[item.campaignId] || {};
+    const defaultUrl = campaign.defaultLink || '';
+    const priceVal = item.price || campaign.defaultPrice || 19.90;
+    const currencyVal = campaign.currency || 'BRL';
+
     return {
       id: item.sku || item.id,
       title: item.title,
       description: item.description,
-      availability: item.availability || 'in stock',
-      condition: 'new',
-      price: item.price ? `${item.price} USD` : '',
+      availability: item.availability || campaign.availability || 'in stock',
+      condition: item.condition || campaign.condition || 'new',
+      price: `${priceVal} ${currencyVal}`,
       link: item.finalUrl || defaultUrl || '',
       image_link: item.imageUrl || '',
       video_link: item.videoUrl || '',
-      brand: item.brand || 'Generic',
-      product_type: item.category || ''
+      brand: item.brand || campaign.brand || 'Premium Store',
+      product_type: item.category || campaign.category || 'General'
     };
   });
   return Papa.unparse(data);
@@ -58,19 +68,23 @@ function createCSV(creatives: any[], campaignsMap: any) {
 
 function createXLSX(creatives: any[], campaignsMap: any) {
   const data = creatives.map(item => {
-    const defaultUrl = campaignsMap[item.campaignId]?.name ? `https://creative-feed.local/campaign/${campaignsMap[item.campaignId].slug}` : '';
+    const campaign = campaignsMap[item.campaignId] || {};
+    const defaultUrl = campaign.defaultLink || '';
+    const priceVal = item.price || campaign.defaultPrice || 19.90;
+    const currencyVal = campaign.currency || 'BRL';
+
     return {
       id: item.sku || item.id,
       title: item.title,
       description: item.description,
-      availability: item.availability || 'in stock',
-      condition: 'new',
-      price: item.price ? `${item.price} USD` : '',
+      availability: item.availability || campaign.availability || 'in stock',
+      condition: item.condition || campaign.condition || 'new',
+      price: `${priceVal} ${currencyVal}`,
       link: item.finalUrl || defaultUrl || '',
       image_link: item.imageUrl || '',
       video_link: item.videoUrl || '',
-      brand: item.brand || 'Generic',
-      product_type: item.category || ''
+      brand: item.brand || campaign.brand || 'Premium Store',
+      product_type: item.category || campaign.category || 'General'
     };
   });
   const wb = xlsx.utils.book_new();

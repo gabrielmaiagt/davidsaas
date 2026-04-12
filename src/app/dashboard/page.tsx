@@ -1,97 +1,125 @@
 import { db } from '@/lib/firebase-admin';
-import { FolderKanban, Clapperboard, Activity, FileOutput } from 'lucide-react';
+import { LayoutGrid, Megaphone, Video, FileDown, Rocket, CheckCircle2, Copy } from 'lucide-react';
 import Link from 'next/link';
 
-// Componente Server para buscar estatísticas
-async function getDashboardStats() {
-  try {
-    const defaultOrg = 'dev-org'; // Em um SaaS real, tiraríamos da sessão (session.organizationId)
-    
-    // Na falta de dados, vamos proteger contra erros retornando zero em caso de erro no firebase-admin
-    if (!db) throw new Error("Firebase Admin DB not initialized");
-    
-    const [offersSnap, creativesSnap, activeCreativesSnap, exportsSnap] = await Promise.all([
-      db.collection('offers').where('organizationId', '==', defaultOrg).count().get(),
-      db.collection('creatives').where('organizationId', '==', defaultOrg).count().get(),
-      db.collection('creatives').where('organizationId', '==', defaultOrg).where('status', '==', 'active').count().get(),
-      db.collection('exports').where('organizationId', '==', defaultOrg).count().get(),
-    ]);
+export const dynamic = 'force-dynamic';
 
-    return {
-      totalOffers: offersSnap.data().count,
-      totalCreatives: creativesSnap.data().count,
-      activeCreatives: activeCreativesSnap.data().count,
-      totalExports: exportsSnap.data().count,
-    };
-  } catch (error) {
-    console.error(error);
-    return {
-      totalOffers: 0,
-      totalCreatives: 0,
-      activeCreatives: 0,
-      totalExports: 0,
-    };
-  }
+async function getStats() {
+  const [campaigns, creatives, exports] = await Promise.all([
+    db.collection('campaigns').where('organizationId', '==', 'dev-org').count().get(),
+    db.collection('creatives').where('organizationId', '==', 'dev-org').count().get(),
+    db.collection('exports').where('organizationId', '==', 'dev-org').count().get(),
+  ]);
+
+  return {
+    campaigns: campaigns.data().count,
+    creatives: creatives.data().count,
+    exports: exports.data().count,
+  };
 }
 
 export default async function DashboardPage() {
-  const stats = await getDashboardStats();
+  const stats = await getStats();
 
   return (
-    <div className="p-8">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
-          <p className="text-[#a1a1aa] mt-1">Bem-vindo ao Creative Feed Manager.</p>
-        </div>
-        <div className="flex gap-3">
-          <Link href="/dashboard/offers/new" className="px-4 py-2 bg-[#27272a] hover:bg-[#3f3f46] text-white text-sm font-medium rounded-md transition-colors">
-            Nova Oferta
-          </Link>
-          <Link href="/dashboard/creatives/new" className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-md transition-colors flex items-center gap-2">
-            <Clapperboard className="w-4 h-4" />
-            Novo Criativo
-          </Link>
-        </div>
+    <div className="space-y-10">
+      <div>
+        <h1 className="text-3xl font-bold text-white mb-2">Bem-vindo, Marketer</h1>
+        <p className="text-zinc-400">Aqui está o resumo da sua operação de criativos.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {[
-          { label: 'Qtd de Ofertas', value: stats.totalOffers, icon: FolderKanban, color: 'text-blue-400' },
-          { label: 'Total de Criativos', value: stats.totalCreatives, icon: Clapperboard, color: 'text-indigo-400' },
-          { label: 'Criativos Ativos', value: stats.activeCreatives, icon: Activity, color: 'text-emerald-400' },
-          { label: 'Total de Exportações', value: stats.totalExports, icon: FileOutput, color: 'text-orange-400' },
-        ].map((stat, i) => (
-          <div key={i} className="bg-[#18181b] border border-[#27272a] rounded-xl p-6 shadow-sm flex flex-col items-start">
-            <div className={`p-2 rounded-lg bg-[#27272a]/50 ${stat.color} mb-4`}>
-              <stat.icon className="w-5 h-5" />
+      {/* Banner de Onboarding (O Guia) */}
+      <div className="bg-indigo-600/10 border border-indigo-500/20 rounded-2xl p-8 relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+          <Rocket className="w-40 h-40 text-indigo-500" />
+        </div>
+        
+        <div className="relative z-10 max-w-2xl">
+          <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+            🚀 Como escalar hoje?
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2">
+              <div className="w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
+              <p className="text-sm font-medium text-white">Crie uma Campanha</p>
+              <p className="text-xs text-zinc-400">Configure o Link da sua loja e o Preço padrão (ex: 19,90).</p>
             </div>
-            <p className="text-sm font-medium text-[#a1a1aa]">{stat.label}</p>
-            <h3 className="text-2xl font-bold mt-1">{stat.value}</h3>
+            <div className="space-y-2">
+              <div className="w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
+              <p className="text-sm font-medium text-white">Suba os Vídeos</p>
+              <p className="text-xs text-zinc-400">Só arraste o MP4. A capa e os dados de catálogo são automáticos.</p>
+            </div>
+            <div className="space-y-2">
+              <div className="w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
+              <p className="text-sm font-medium text-white">Link no TikTok</p>
+              <p className="text-xs text-zinc-400">Copie o link do "Live Feed" e cole no seu Catálogo do TikTok Ads.</p>
+            </div>
           </div>
-        ))}
+          
+          <div className="mt-8">
+             <Link href="/dashboard/campaigns/new" className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors inline-block">
+               Começar Agora
+             </Link>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-         {/* Blank state for tables yet to be fully implemented */}
-         <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-6">
-           <h3 className="text-base font-semibold border-b border-[#27272a] pb-4 mb-4">Criativos Recentes</h3>
-           <div className="flex flex-col items-center justify-center py-12 text-center">
-             <Clapperboard className="w-8 h-8 text-[#3f3f46] mb-3" />
-             <p className="text-sm font-medium text-[#a1a1aa]">Nenhum criativo cadastrado.</p>
-             <Link href="/dashboard/creatives/new" className="text-indigo-400 text-sm mt-1 hover:underline">
-               Comece criando um agora.
-             </Link>
-           </div>
-         </div>
+      {/* Estatísticas Rápidas */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-xl hover:bg-zinc-800/50 transition-colors group">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400 group-hover:scale-110 transition-transform">
+              <Megaphone className="w-6 h-6" />
+            </div>
+            <span className="text-xs text-emerald-500 font-medium">+ Ativas</span>
+          </div>
+          <p className="text-3xl font-bold text-white">{stats.campaigns}</p>
+          <p className="text-sm text-zinc-500 mt-1 uppercase tracking-wider font-semibold">Campanhas</p>
+        </div>
 
-         <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-6">
-           <h3 className="text-base font-semibold border-b border-[#27272a] pb-4 mb-4">Exportações Recentes</h3>
-           <div className="flex flex-col items-center justify-center py-12 text-center">
-             <FileOutput className="w-8 h-8 text-[#3f3f46] mb-3" />
-             <p className="text-sm font-medium text-[#a1a1aa]">Nenhuma exportação realizada.</p>
-           </div>
-         </div>
+        <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-xl hover:bg-zinc-800/50 transition-colors group">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-2 bg-emerald-500/10 rounded-lg text-emerald-400 group-hover:scale-110 transition-transform">
+              <Video className="w-6 h-6" />
+            </div>
+            <span className="text-xs text-emerald-500 font-medium">Hospedados</span>
+          </div>
+          <p className="text-3xl font-bold text-white">{stats.creatives}</p>
+          <p className="text-sm text-zinc-500 mt-1 uppercase tracking-wider font-semibold">Criativos</p>
+        </div>
+
+        <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-xl hover:bg-zinc-800/50 transition-colors group">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-2 bg-amber-500/10 rounded-lg text-amber-400 group-hover:scale-110 transition-transform">
+              <FileDown className="w-6 h-6" />
+            </div>
+            <span className="text-xs text-amber-500 font-medium">Arquivos</span>
+          </div>
+          <p className="text-3xl font-bold text-white">{stats.exports}</p>
+          <p className="text-sm text-zinc-500 mt-1 uppercase tracking-wider font-semibold">Feeds Gerados</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+             <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+               <CheckCircle2 className="w-5 h-5 text-indigo-500" />
+               Dica de Performance
+             </h3>
+             <p className="text-zinc-400 text-sm leading-relaxed">
+               Lembre-se: O TikTok Ads valoriza a renovação de mídias. Tente subir pelo menos 3 criativos novos toda semana dentro da sua campanha padrão para evitar a fadiga do anúncio. O nosso Live Feed cuidará de avisar o TikTok sobre as novidades automaticamente.
+             </p>
+          </div>
+          
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+             <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+               <Copy className="w-5 h-5 text-indigo-500" />
+               Atenção ao Link
+             </h3>
+             <p className="text-zinc-400 text-sm leading-relaxed">
+               Sempre valide se o Link Padrão da sua campanha está correto. Se você esqueceu de colocar UTMs no link da Campanha, elas não aparecerão nos seus anúncios a menos que você as coloque individualmente em cada criativo.
+             </p>
+          </div>
       </div>
     </div>
   );

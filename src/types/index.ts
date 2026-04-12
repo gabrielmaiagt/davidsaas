@@ -23,6 +23,14 @@ export interface Campaign {
   name: string;
   slug: string;
   isDefault: boolean;
+  
+  // Configurações Padrão de Catálogo (Uso para Feed)
+  defaultLink: string;
+  defaultPrice: number;
+  currency: string; // Ex: BRL, USD
+  brand: string;
+  category: string;
+  
   createdAt: string;
   updatedAt: string;
 }
