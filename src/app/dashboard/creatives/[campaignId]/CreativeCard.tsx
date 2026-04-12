@@ -29,57 +29,60 @@ export default function CreativeCard({ creative }: { creative: any }) {
   };
 
   return (
-    <div className="group relative bg-surface-container-low border border-outline-variant/10 rounded-xl overflow-hidden hover:border-primary/40 transition-all shadow-sm flex flex-col h-full glow-primary">
+    <div className="group relative bg-[#111318] border border-white/5 rounded-2xl overflow-hidden hover:border-primary/40 transition-all duration-300 flex flex-col h-full shadow-2xl hover:shadow-primary/5">
       {/* Media Preview */}
-      <div className="relative aspect-[9/16] bg-background overflow-hidden">
+      <div className="relative aspect-[9/16] bg-black overflow-hidden">
         {creative.imageUrl ? (
           <img 
             src={creative.imageUrl} 
             alt={creative.title} 
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-75 group-hover:brightness-100" 
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 brightness-[0.85] group-hover:brightness-100" 
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-surface-container-low">
-             <Video className="w-6 h-6 text-on-surface-variant/20" />
+             <Video className="w-8 h-8 text-on-surface-variant/10" />
           </div>
         )}
         
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-80"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0c0e12] via-transparent to-transparent opacity-90"></div>
         
         {/* Play Highlight */}
         {creative.videoUrl && (
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20">
-            <Link href={creative.videoUrl} target="_blank" className="w-12 h-12 bg-primary/20 backdrop-blur-md border border-primary/30 rounded-full flex items-center justify-center hover:scale-110 transition-all shadow-2xl">
-              <Play className="w-5 h-5 text-primary fill-primary" />
+            <Link href={creative.videoUrl} target="_blank" className="w-14 h-14 bg-primary/10 backdrop-blur-xl border border-primary/30 rounded-full flex items-center justify-center hover:scale-110 transition-all shadow-[0_0_30px_rgba(95,255,247,0.2)]">
+              <Play className="w-6 h-6 text-primary fill-primary" />
             </Link>
           </div>
         )}
 
         {/* Status Badge */}
-        <div className="absolute top-3 left-3 z-30">
-          <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${
+        <div className="absolute top-4 left-4 z-30">
+          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border backdrop-blur-md ${
             creative.status === 'active' 
               ? 'bg-primary/10 text-primary border-primary/20' 
-              : 'bg-on-surface-variant/10 text-on-surface-variant border-on-surface-variant/20'
-          } uppercase tracking-[0.2em]`}>
-            {creative.status === 'active' ? 'LIVE' : 'IDLE'}
-          </span>
+              : 'bg-white/5 text-on-surface-variant border-white/10'
+          }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${creative.status === 'active' ? 'bg-primary animate-pulse shadow-[0_0_8px_#5ffff7]' : 'bg-on-surface-variant'}`}></span>
+            <span className="text-[9px] font-black uppercase tracking-[0.15em]">
+              {creative.status === 'active' ? 'LIVE' : 'IDLE'}
+            </span>
+          </div>
         </div>
       </div>
 
       {/* Content */}
-      <div className="p-3 flex-1 flex flex-col bg-surface-container/30">
-        <h4 className="text-[11px] font-black text-white truncate mb-0.5 font-headline tracking-tight group-hover:text-primary transition-colors">{creative.title}</h4>
-        <p className="text-[9px] text-on-surface-variant font-bold uppercase tracking-widest opacity-60 flex items-center gap-1">
-           SKU: {creative.sku.slice(-8)}
+      <div className="p-4 flex-1 flex flex-col bg-[#111318]">
+        <h4 className="text-xs font-black text-white truncate mb-1 font-headline tracking-tight group-hover:text-primary transition-colors">{creative.title}</h4>
+        <p className="text-[9px] text-on-surface-variant/50 font-bold uppercase tracking-widest flex items-center gap-1 mb-4">
+           SKU: <span className="text-on-surface-variant">{creative.sku.slice(-8)}</span>
         </p>
         
-        <div className="mt-4 flex items-center justify-between gap-1 border-t border-outline-variant/10 pt-3">
+        <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between gap-2">
            {/* Actions */}
-           <div className="flex items-center gap-1">
+           <div className="flex items-center bg-white/5 rounded-xl p-1">
              <Link 
                href={`/dashboard/creatives/${creative.id}/edit`} 
-               className="p-2 text-on-surface-variant hover:text-white hover:bg-surface-container-high rounded-lg transition-all"
+               className="p-2 text-on-surface-variant hover:text-white hover:bg-white/5 rounded-lg transition-all"
                title="Editar"
              >
                <Pencil className="w-3.5 h-3.5" />
@@ -99,42 +102,43 @@ export default function CreativeCard({ creative }: { creative: any }) {
              <button 
                onClick={() => setShowOptions(!showOptions)}
                disabled={isPending}
-               className="p-2 bg-surface-container-highest text-primary hover:bg-primary hover:text-on-primary rounded-lg transition-all flex items-center gap-2 shadow-sm border border-outline-variant/10"
+               className="h-10 px-4 bg-primary/10 text-primary hover:bg-primary hover:text-on-primary rounded-xl transition-all flex items-center gap-2 border border-primary/20 group/btn"
                title="Duplicar este vídeo"
              >
-               {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Copy className="w-3.5 h-3.5" />}
-               <span className="text-[10px] font-black uppercase tracking-widest">CLONAR</span>
+               {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Copy className="w-3.5 h-3.5 group-hover/btn:scale-110 transition-transform" />}
+               <span className="text-[10px] font-black uppercase tracking-widest leading-none">CLONAR</span>
              </button>
 
              {showOptions && !isPending && (
-               <div className="absolute bottom-12 right-0 w-36 bg-surface-container-high border border-outline-variant/20 rounded-xl shadow-2xl p-2 z-[60] animate-in fade-in slide-in-from-bottom-2 duration-150">
-                  <div className="grid grid-cols-2 gap-1.5 mb-2">
+               <div className="absolute bottom-12 right-0 w-40 bg-[#171a1f] border border-white/10 rounded-2xl shadow-2xl p-2.5 z-[60] animate-in fade-in slide-in-from-bottom-3 duration-200">
+                  <p className="text-[8px] font-black text-on-surface-variant/50 uppercase tracking-[0.2em] mb-2 px-1">Quantidade</p>
+                  <div className="grid grid-cols-2 gap-2 mb-2">
                      {[2, 3, 5, 10].map((n) => (
                       <button
                           key={n}
                           onClick={() => handleDuplicate(n)}
-                          className="w-full text-center py-2 text-[10px] text-on-surface-variant hover:bg-primary hover:text-on-primary rounded-lg transition-all font-black border border-outline-variant/10"
+                          className="w-full text-center py-2 text-[10px] text-on-surface/70 hover:bg-primary hover:text-on-primary rounded-lg transition-all font-black border border-white/5"
                       >
                           {n}x
                       </button>
                      ))}
                   </div>
                   
-                  <div className="flex items-center gap-2 bg-background border border-outline-variant/20 rounded-lg px-2 py-1">
+                  <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-xl px-3 py-2">
                      <input 
                        type="number" 
                        min="1"
-                       placeholder="Manual..." 
+                       placeholder="Mais..." 
                        value={manualCount}
                        onChange={(e) => setManualCount(e.target.value)}
-                       className="bg-transparent border-none text-[10px] text-on-surface p-0 focus:ring-0 w-full font-bold placeholder:text-on-surface-variant/30"
+                       className="bg-transparent border-none text-[10px] text-on-surface p-0 focus:ring-0 w-full font-bold placeholder:text-on-surface-variant/20"
                      />
                      <button 
                        onClick={() => manualCount && handleDuplicate(parseInt(manualCount))}
                        disabled={!manualCount}
                        className="text-primary hover:text-white disabled:opacity-30"
                      >
-                         <ChevronRight className="w-3.5 h-3.5" />
+                         <ChevronRight className="w-4 h-4" />
                      </button>
                   </div>
                </div>
