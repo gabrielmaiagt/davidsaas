@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { PlusCircle, Star } from 'lucide-react';
 import SetDefaultButton from './SetDefaultButton';
 import DeleteCampaignButton from './DeleteCampaignButton';
+import FeedUrlInput from './FeedUrlInput';
 
 export const dynamic = 'force-dynamic';
 
@@ -73,14 +74,7 @@ export default async function CampaignsPage() {
                   
                   <div className="mt-4 pt-3 border-t border-zinc-800/60">
                     <p className="text-xs text-zinc-500 mb-1">Live Feed URL (Auto-sync) 👇</p>
-                    <input 
-                      type="text" 
-                      readOnly 
-                      value={`http://localhost:3000/api/feed/${campaign.id}`}
-                      className="w-full bg-zinc-950 text-xs text-indigo-300 border border-zinc-800 rounded px-2 py-1 focus:outline-none"
-                      onClick={(e) => (e.target as HTMLInputElement).select()}
-                      title="Copie e cole no Gerenciador de Catálogo da plataforma de anúncios"
-                    />
+                    <FeedUrlInput url={`http://localhost:3000/api/feed/${campaign.id}`} />
                   </div>
                 </div>
               </div>
