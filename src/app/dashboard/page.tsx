@@ -16,17 +16,24 @@ import {
 export const dynamic = 'force-dynamic';
 
 async function getStats(orgId: string) {
-  const [campaigns, creatives, exportsCount] = await Promise.all([
-    db.collection('campaigns').where('organizationId', '==', orgId).count().get(),
-    db.collection('creatives').where('organizationId', '==', orgId).count().get(),
-    db.collection('exports').where('organizationId', '==', orgId).count().get(),
-  ]);
+  if (!db) return { campaigns: 0, creatives: 0, exports: 0 };
+  
+  try {
+    const [campaigns, creatives, exportsCount] = await Promise.all([
+      db.collection('campaigns').where('organizationId', '==', orgId).count().get(),
+      db.collection('creatives').where('organizationId', '==', orgId).count().get(),
+      db.collection('exports').where('organizationId', '==', orgId).count().get(),
+    ]);
 
-  return {
-    campaigns: campaigns.data().count,
-    creatives: creatives.data().count,
-    exports: exportsCount.data().count,
-  };
+    return {
+      campaigns: campaigns.data().count,
+      creatives: creatives.data().count,
+      exports: exportsCount.data().count,
+    };
+  } catch (error) {
+    console.error('Error fetching stats:', error);
+    return { campaigns: 0, creatives: 0, exports: 0 };
+  }
 }
 
 export default async function DashboardPage() {
