@@ -27,60 +27,85 @@ export async function uploadFileToStorage(file: File, folder: string): Promise<s
 }
 
 export async function createCreativeAction(state: any, formData: FormData, redirectResponse: boolean = true) {
-  const orgId = await getOrganizationId();
-  if (!orgId) return { error: 'Não autorizado' };
+  try {
+    const orgId = await getOrganizationId();
+    if (!orgId) return { error: 'Não autorizado' };
 
-  const campaignId = formData.get('campaignId') as string;
-  const title = formData.get('title') as string;
-  const description = formData.get('description') as string;
-  const finalUrl = formData.get('finalUrl') as string;
-  const brand = formData.get('brand') as string;
-  const category = formData.get('category') as string;
-  const tagsStr = formData.get('tags') as string;
-  const skuInput = formData.get('sku') as string;
-  const status = formData.get('status') as string || 'active';
-  const condition = formData.get('condition') as string || 'new';
-  const availability = formData.get('availability') as string || 'in stock';
-  const price = formData.get('price') ? Number(formData.get('price')) : null;
+    // Verificação de segurança para o Firebase Admin
+    if (!db || !storage) {
+      console.error('FIREBASE CRITICAL: Admin SDK not initialized. Check environment variables.');
+      return { error: 'O servidor não está configurado corretamente (Firebase Keys faltando). Verifique as variáveis de ambiente de produção.' };
+    }
 
-  const videoFile = formData.get('video') as File;
-  const imageFile = formData.get('image') as File;
+    const campaignId = formData.get('campaignId') as string;
+    const title = formData.get('title') as string;
+    const description = formData.get('description') as string;
+    const finalUrl = formData.get('finalUrl') as string;
+    const brand = formData.get('brand') as string;
+    const category = formData.get('category') as string;
+    const tagsStr = formData.get('tags') as string;
+    const skuInput = formData.get('sku') as string;
+    const status = formData.get('status') as string || 'active';
+    const condition = formData.get('condition') as string || 'new';
+    const availability = formData.get('availability') as string || 'in stock';
+    const price = formData.get('price') ? Number(formData.get('price')) : null;
 
-  const videoUrl = await uploadFileToStorage(videoFile, 'videos');
-  const imageUrl = await uploadFileToStorage(imageFile, 'images');
+    const videoFile = formData.get('video') as File;
+    const imageFile = formData.get('image') as File;
 
-  const generatedSku = skuInput || `SKU-${uuidv4().split('-')[0].toUpperCase()}`;
+    if (!videoFile || videoFile.size === 0) {
+      return { error: 'Nenhum vídeo enviado ou arquivo corrompido.' };
+    }
 
-  const tags = tagsStr ? tagsStr.split(',').map((t: string) => t.trim()).filter(Boolean) : [];
+    // O upload pode falhar se as permissões do Storage estiverem incorretas
+    let videoUrl = '';
+    let imageUrl = '';
+    
+    try {
+      videoUrl = await uploadFileToStorage(videoFile, 'videos');
+      imageUrl = imageFile && imageFile.size > 0 
+        ? await uploadFileToStorage(imageFile, 'images') 
+        : '';
+    } catch (storageErr: any) {
+      console.error('STORAGE ERROR:', storageErr);
+      return { error: `Falha no upload para o Storage: ${storageErr.message || 'Erro desconhecido'}` };
+    }
 
-  const creative = {
-    organizationId: orgId,
-    campaignId,
-    title,
-    description,
-    finalUrl,
-    videoUrl,
-    imageUrl,
-    sku: generatedSku,
-    externalId: generatedSku,
-    brand,
-    category,
-    tags,
-    price,
-    availability,
-    condition,
-    status,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
+    const generatedSku = skuInput || `SKU-${uuidv4().split('-')[0].toUpperCase()}`;
+    const tags = tagsStr ? tagsStr.split(',').map((t: string) => t.trim()).filter(Boolean) : [];
 
-  await db.collection('creatives').add(creative);
-  
-  revalidatePath('/dashboard/creatives');
-  if (redirectResponse) {
-    redirect('/dashboard/creatives');
+    const creative = {
+      organizationId: orgId,
+      campaignId,
+      title,
+      description,
+      finalUrl,
+      videoUrl,
+      imageUrl,
+      sku: generatedSku,
+      externalId: generatedSku,
+      brand,
+      category,
+      tags,
+      price,
+      availability,
+      condition,
+      status,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    await db.collection('creatives').add(creative);
+    
+    revalidatePath('/dashboard/creatives');
+    if (redirectResponse) {
+      redirect('/dashboard/creatives');
+    }
+    return { success: true, creativeId: generatedSku };
+  } catch (err: any) {
+    console.error('CREATE CREATIVE ERROR:', err);
+    return { error: err.message || 'Ocorreu um erro inesperado no servidor.' };
   }
-  return { success: true, creativeId: generatedSku };
 }
 
 export async function duplicateCreativeAction(id: string, count: number) {

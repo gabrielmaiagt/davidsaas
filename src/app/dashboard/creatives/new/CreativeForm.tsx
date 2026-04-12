@@ -138,10 +138,10 @@ export default function CreativeForm({ campaigns }: { campaigns: Campaign[] }) {
         if (result.success) {
           setPendingFiles((prev: PendingFile[]) => prev.map((p: PendingFile) => p.id === item.id ? { ...p, status: 'success' } : p));
         } else {
-          throw new Error('Falha no upload');
+          throw new Error(result.error || 'Falha no upload');
         }
-      } catch (err) {
-        setPendingFiles((prev: PendingFile[]) => prev.map((p: PendingFile) => p.id === item.id ? { ...p, status: 'error', error: 'Falha ao subir' } : p));
+      } catch (err: any) {
+        setPendingFiles((prev: PendingFile[]) => prev.map((p: PendingFile) => p.id === item.id ? { ...p, status: 'error', error: err.message || 'Falha ao subir' } : p));
       }
     }
 
