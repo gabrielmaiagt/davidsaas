@@ -1,22 +1,25 @@
 import { db } from '@/lib/firebase-admin';
 import Link from 'next/link';
-import { Plus, Folder, Video, ChevronRight, LayoutGrid } from 'lucide-react';
+import { Plus, Folder, Video, ChevronRight } from 'lucide-react';
+import { getOrganizationId } from '@/lib/session';
+import { redirect } from 'next/navigation';
+import FolderCard from './FolderCard';
 
 export const dynamic = 'force-dynamic';
 
-async function getFolders() {
+async function getFolders(orgId: string) {
   const [campaignsSnap, creativesSnap] = await Promise.all([
-    db.collection('campaigns').where('organizationId', '==', 'dev-org').get(),
-    db.collection('creatives').where('organizationId', '==', 'dev-org').get()
+    db.collection('campaigns').where('organizationId', '==', orgId).get(),
+    db.collection('creatives').where('organizationId', '==', orgId).get()
   ]);
 
-  const campaigns = campaignsSnap.docs.map(doc => ({
+  const campaigns = campaignsSnap.docs.map((doc: any) => ({
     id: doc.id,
     ...doc.data(),
     count: 0
   })) as any[];
 
-  creativesSnap.docs.forEach(doc => {
+  creativesSnap.docs.forEach((doc: any) => {
     const data = doc.data();
     const campaign = campaigns.find(c => c.id === data.campaignId);
     if (campaign) {
@@ -28,18 +31,37 @@ async function getFolders() {
 }
 
 export default async function CreativesPage() {
-  const folders = await getFolders();
+  const orgId = await getOrganizationId();
+  if (!orgId) redirect('/login');
+
+  let folders: any[] = [];
+  let dbError = !db;
+
+  if (db) {
+    try {
+      folders = await getFolders(orgId);
+    } catch (error) {
+       console.error('Error fetching folders:', error);
+       dbError = true;
+    }
+  }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="flex justify-between items-end">
+    <div className="space-y-10 animate-in fade-in duration-500">
+      {dbError && (
+        <div className="bg-secondary/10 border border-secondary/20 p-4 rounded-xl text-secondary text-xs font-bold flex items-center gap-2 mb-6">
+           <Video className="w-4 h-4 shrink-0" />
+           Atenção: A conexão com o banco de dados falhou. Verifique suas chaves no .env.local.
+        </div>
+      )}
+      <div className="flex justify-between items-end gap-6">
         <div>
-          <h2 className="text-3xl font-bold text-white tracking-tight">Suas Pastas</h2>
-          <p className="text-zinc-400 mt-1">Organize seus criativos por oferta e escale o volume.</p>
+          <h2 className="text-3xl font-black text-white tracking-tighter font-headline">Suas Pastas Operacionais</h2>
+          <p className="text-on-surface-variant mt-2 opacity-80 text-sm">Organize seus criativos por oferta e escale o volume de anúncios.</p>
         </div>
         <Link 
           href="/dashboard/creatives/new" 
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-lg shadow-indigo-600/20 flex items-center gap-2"
+          className="bg-primary text-on-primary font-headline font-black px-6 py-3 rounded-xl transition-all hover:brightness-110 active:scale-95 shadow-lg shadow-primary/10 flex items-center gap-2 text-xs uppercase tracking-widest whitespace-nowrap"
         >
           <Plus className="w-4 h-4" />
           Novo Criativo
@@ -47,61 +69,33 @@ export default async function CreativesPage() {
       </div>
 
       {folders.length === 0 ? (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-12 text-center">
-           <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Folder className="w-8 h-8 text-zinc-600" />
+        <div className="bg-surface-container-low border border-outline-variant/10 rounded-2xl p-16 text-center">
+           <div className="w-20 h-20 bg-surface-container-high rounded-full flex items-center justify-center mx-auto mb-6">
+              <Folder className="w-10 h-10 text-on-surface-variant/30" />
            </div>
-           <h3 className="text-white font-medium">Nenhuma pasta ainda</h3>
-           <p className="text-zinc-500 text-sm mt-1 max-w-xs mx-auto">
-             Crie sua primeira campanha para começar a organizar seus criativos em pastas.
+           <h3 className="text-xl font-black font-headline text-white mb-2 tracking-tight">Nenhuma pasta ainda</h3>
+           <p className="text-on-surface-variant text-sm mt-1 max-w-xs mx-auto opacity-70">
+             Crie sua primeira campanha para começar a organizar seus criativos em pastas automatizadas.
            </p>
-           <Link href="/dashboard/campaigns/new" className="text-indigo-400 text-sm font-medium mt-4 inline-block hover:underline">
-             Criar Campanha →
+           <Link href="/dashboard/campaigns/new" className="text-primary text-xs font-black uppercase tracking-widest mt-8 inline-block hover:underline">
+             Criar Campanha Primária →
            </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {folders.map((folder) => (
-            <Link 
-              key={folder.id} 
-              href={`/dashboard/creatives/${folder.id}`}
-              className="group bg-zinc-900 border border-zinc-800 rounded-2xl p-4 hover:bg-zinc-800/50 hover:border-indigo-500/30 transition-all shadow-sm"
-            >
-              <div className="flex justify-between items-start mb-4">
-                 <div className="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-all">
-                    <Folder className="w-5 h-5" />
-                 </div>
-                 <div className="flex -space-x-2">
-                    {[...Array(Math.min(folder.count, 3))].map((_, i) => (
-                      <div key={i} className="w-6 h-6 border-2 border-zinc-900 bg-zinc-800 rounded-full flex items-center justify-center">
-                         <Video className="w-3 h-3 text-zinc-500" />
-                      </div>
-                    ))}
-                 </div>
-              </div>
-              
-              <h3 className="text-white font-semibold truncate group-hover:text-indigo-400 transition-colors">
-                {folder.name}
-              </h3>
-              
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-zinc-800/50">
-                <span className="text-xs text-zinc-500 font-medium uppercase tracking-wider">
-                  {folder.count} Criativos
-                </span>
-                <ChevronRight className="w-4 h-4 text-zinc-700 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </Link>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+          {folders.map((folder: any) => (
+            <FolderCard key={folder.id} folder={folder} />
           ))}
           
           {/* Action Card: New Campaign Shortcut */}
           <Link 
             href="/dashboard/campaigns/new"
-            className="border-2 border-dashed border-zinc-800 rounded-2xl p-4 flex flex-col items-center justify-center text-center hover:border-zinc-700 transition-colors group min-h-[140px]"
+            className="border-2 border-dashed border-outline-variant/10 rounded-2xl p-5 flex flex-col items-center justify-center text-center hover:bg-surface-container-low hover:border-primary/40 transition-all group min-h-[180px]"
           >
-             <div className="w-10 h-10 rounded-full bg-zinc-900 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                <Plus className="w-5 h-5 text-zinc-500" />
+             <div className="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-primary/10 transition-all duration-300">
+                <Plus className="w-6 h-6 text-on-surface-variant group-hover:text-primary" />
              </div>
-             <p className="text-xs font-medium text-zinc-400">Nova Pasta</p>
+             <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest group-hover:text-primary transition-colors">Nova Pasta</p>
           </Link>
         </div>
       )}

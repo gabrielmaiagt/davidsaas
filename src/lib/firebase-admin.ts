@@ -1,14 +1,29 @@
 import * as admin from 'firebase-admin';
 
-if (!admin.apps.length) {
+function getAdminApp() {
+  if (admin.apps.length > 0) return admin.apps[0];
+
   try {
     const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
     const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-    const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+    
+    // Normalização robusta da chave privada
+    let rawKey = process.env.FIREBASE_PRIVATE_KEY || '';
+    
+    // Remove aspas duplas/simples envolventes
+    rawKey = rawKey.trim().replace(/^["']|["']$/g, '');
+    
+    // Converte sequências literais '\n' em quebradas de linha REAIS
+    // E remove possíveis \r que quebram no Linux/Firebase
+    const privateKey = rawKey.replace(/\\n/g, '\n').replace(/\r/g, '');
 
-    if (projectId && clientEmail && privateKey) {
-      // Inicialização via Chaves Manuais (Local ou Secrets)
-      admin.initializeApp({
+    console.log('FIREBASE: Initializing for Project:', projectId);
+    console.log('FIREBASE: Key starts with BEGIN?', privateKey.startsWith('-----BEGIN PRIVATE KEY-----'));
+    console.log('FIREBASE: Key ends with END?', privateKey.trim().endsWith('-----END PRIVATE KEY-----'));
+
+    if (projectId && clientEmail && privateKey.includes('BEGIN PRIVATE KEY')) {
+      console.log('FIREBASE: Attempting credential.cert initialization...');
+      return admin.initializeApp({
         credential: admin.credential.cert({
           projectId,
           clientEmail,
@@ -16,23 +31,31 @@ if (!admin.apps.length) {
         }),
         storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
       });
-      console.log('Firebase Admin initialized with service account keys.');
     } else {
-      // Inicialização via Application Default Credentials (ADC) - Ideal para App Hosting/GCP
-      // No ambiente de Build do Next.js, isso pode falhar se não houver credenciais,
-      // mas o catch impedirá que o build quebre.
-      admin.initializeApp({
+      console.warn('FIREBASE: Missing credentials or malformed key. Access will fail.');
+      return admin.initializeApp({
         storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
       });
-      console.log('Firebase Admin initialized with Application Default Credentials.');
     }
   } catch (error) {
-    // Durante o 'npm run build', o Firebase Admin pode reclamar de falta de credenciais.
-    // O catch evita que o processo de build do Next.js seja interrompido.
-    console.warn('Firebase Admin initialization skipped or failed (common during build):', (error as any).message);
+    console.error('Firebase Admin initialization failed:', error);
+    return null;
   }
 }
 
-export const db = admin.firestore();
-export const storage = admin.storage();
-export const auth = admin.auth();
+// Singleton pattern for Next.js hot-reloading
+const globalForAdmin = globalThis as unknown as {
+  firebaseAdminApp: admin.app.App | undefined;
+};
+
+const app = globalForAdmin.firebaseAdminApp ?? getAdminApp();
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForAdmin.firebaseAdminApp = app || undefined;
+}
+
+// Export safe accessors
+export const db = app ? admin.firestore(app) : null as any;
+export const storage = app ? admin.storage(app) : null as any;
+export const auth = app ? admin.auth(app) : null as any;
+export const adminApp = app;

@@ -1,83 +1,117 @@
 import { db } from '@/lib/firebase-admin';
 import ExportForm from './ExportForm';
-import { FileOutput, Download } from 'lucide-react';
+import { FileOutput, Download, History, PlusSquare } from 'lucide-react';
+import { getOrganizationId } from '@/lib/session';
+import { redirect } from 'next/navigation';
 
-async function getCampaigns() {
-  const snapshot = await db.collection('campaigns').where('organizationId', '==', 'dev-org').get();
-  return snapshot.docs.map(doc => ({ id: doc.id, name: doc.data().name }));
+async function getCampaigns(orgId: string) {
+  const snapshot = await db.collection('campaigns').where('organizationId', '==', orgId).get();
+  return snapshot.docs.map((doc: any) => ({ id: doc.id, name: doc.data().name }));
 }
 
-async function getExports() {
-  const snapshot = await db.collection('exports').where('organizationId', '==', 'dev-org').orderBy('createdAt', 'desc').limit(20).get();
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+async function getExports(orgId: string) {
+  const snapshot = await db.collection('exports').where('organizationId', '==', orgId).orderBy('createdAt', 'desc').limit(20).get();
+  return snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as any));
 }
 
 export default async function ExportsPage() {
-  const campaigns = await getCampaigns();
-  const history = await getExports();
+  const orgId = await getOrganizationId();
+  if (!orgId) redirect('/login');
+
+  let campaigns: any[] = [];
+  let history: any[] = [];
+  let dbError = !db;
+
+  if (db) {
+    try {
+      [campaigns, history] = await Promise.all([
+        getCampaigns(orgId),
+        getExports(orgId)
+      ]);
+    } catch (error) {
+      console.error('Error fetching export data:', error);
+      dbError = true;
+    }
+  }
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold tracking-tight">Gerador de Feeds</h2>
-        <p className="text-[#a1a1aa] mt-1">Exporte seus criativos para catálogos do TikTok Ads e outras plataformas.</p>
+    <div className="space-y-10 animate-in fade-in duration-500">
+      {dbError && (
+        <div className="bg-secondary/10 border border-secondary/20 p-4 rounded-xl text-secondary text-xs font-bold flex items-center gap-2 mb-6">
+           <History className="w-4 h-4 shrink-0" />
+           Atenção: A conexão com o banco de dados falhou. Verifique suas chaves no .env.local.
+        </div>
+      )}
+      <div className="mb-10">
+        <h2 className="text-4xl font-black tracking-tighter text-white font-headline">Gerador de Feeds</h2>
+        <p className="text-on-surface-variant mt-2 opacity-80 text-sm">Exporte seus criativos para catálogos do TikTok Ads em escala industrial.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* New Export Form Card */}
         <div className="lg:col-span-1">
-          <div className="bg-[#18181b] border border-[#27272a] rounded-xl p-6 shadow-sm">
-            <h3 className="text-lg font-semibold mb-4">Novo Feed</h3>
+          <div className="bg-surface-container-low border border-outline-variant/10 rounded-2xl p-8 shadow-sm h-fit">
+            <div className="flex items-center gap-3 mb-6">
+               <PlusSquare className="w-5 h-5 text-primary" />
+               <h3 className="text-lg font-black font-headline text-white tracking-tight uppercase tracking-widest text-xs">Novo Feed</h3>
+            </div>
             <ExportForm campaigns={campaigns as any} />
           </div>
         </div>
 
-        <div className="lg:col-span-2 shadow-sm">
-          <div className="bg-[#18181b] border border-[#27272a] rounded-xl overflow-hidden h-full">
-            <div className="p-6 border-b border-[#27272a]">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <FileOutput className="w-5 h-5" /> 
-                Histórico de Exportações
+        {/* Export History Card */}
+        <div className="lg:col-span-2">
+          <div className="bg-surface-container-low border border-outline-variant/10 rounded-2xl overflow-hidden h-full shadow-sm">
+            <div className="p-8 border-b border-outline-variant/10 flex items-center justify-between">
+              <h3 className="text-lg font-black font-headline flex items-center gap-3 text-white tracking-tight uppercase tracking-widest text-xs">
+                <History className="w-5 h-5 text-primary" /> 
+                Histórico Operacional
               </h3>
+              <span className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em] bg-surface-container-high px-3 py-1 rounded-full">Últimas 20 Exportações</span>
             </div>
+            
             <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-[#27272a]/50 text-[#a1a1aa] text-xs uppercase font-semibold">
-                  <tr>
-                    <th className="px-6 py-4">Data</th>
-                    <th className="px-6 py-4">Formato</th>
-                    <th className="px-6 py-4">Filtro (Oferta)</th>
-                    <th className="px-6 py-4 text-right">Ação</th>
+              <table className="w-full text-sm text-left border-collapse">
+                <thead>
+                  <tr className="bg-surface-container/50 text-on-surface-variant text-[10px] uppercase font-black tracking-[0.2em]">
+                    <th className="px-8 py-5">Carimbo de Data</th>
+                    <th className="px-8 py-5">Formato</th>
+                    <th className="px-8 py-5">Filtro Aplicado</th>
+                    <th className="px-8 py-5 text-right">Ação</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#27272a]">
+                <tbody className="divide-y divide-outline-variant/5">
                   {history.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="px-6 py-12 text-center text-[#a1a1aa]">
-                        Nenhuma exportação encontrada. Gere seu primeiro feed!
+                      <td colSpan={4} className="px-8 py-20 text-center">
+                        <div className="flex flex-col items-center gap-3">
+                           <FileOutput className="w-10 h-10 text-on-surface-variant/20" />
+                           <p className="text-on-surface-variant text-sm font-bold opacity-60">Nenhum feed gerado ainda.</p>
+                        </div>
                       </td>
                     </tr>
                   )}
-                  {history.map(item => (
-                    <tr key={item.id} className="hover:bg-[#27272a]/20 transition-colors">
-                      <td className="px-6 py-4 text-white">
-                        {new Date(item.createdAt).toLocaleString()}
+                  {history.map((item: any) => (
+                    <tr key={item.id} className="hover:bg-surface-container-high/50 transition-all group">
+                      <td className="px-8 py-5 text-white font-medium text-xs">
+                        {new Date(item.createdAt).toLocaleString('pt-BR')}
                       </td>
-                      <td className="px-6 py-4">
-                        <span className="uppercase text-indigo-400 font-bold text-xs bg-indigo-500/10 px-2 py-1 rounded">
+                      <td className="px-8 py-5">
+                        <span className="uppercase text-primary font-black text-[10px] bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full tracking-widest">
                           {item.type}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-[#a1a1aa]">
-                        {item.filtersApplied?.campaignId ? (campaigns as any).find((o: any) => o.id === item.filtersApplied.campaignId)?.name || 'Específica' : 'Todas as Ofertas'}
+                      <td className="px-8 py-5 text-on-surface-variant text-xs font-bold transition-colors group-hover:text-white">
+                        {item.filtersApplied?.campaignId ? (campaigns as any).find((o: any) => o.id === item.filtersApplied.campaignId)?.name || 'Específica' : 'Feed Global'}
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-8 py-5 text-right">
                         <a 
                           href={item.fileUrl} 
                           target="_blank" 
                           rel="noreferrer"
-                          className="inline-flex items-center gap-1 text-sm text-indigo-400 hover:text-indigo-300 transition-colors font-medium"
+                          className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-primary hover:text-white transition-all bg-primary/5 hover:bg-primary px-4 py-2 rounded-lg border border-primary/20"
                         >
-                          <Download className="w-4 h-4" /> Baixar
+                          <Download className="w-3.5 h-3.5" /> Baixar
                         </a>
                       </td>
                     </tr>

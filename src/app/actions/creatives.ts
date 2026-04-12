@@ -4,8 +4,7 @@ import { db, storage } from '@/lib/firebase-admin';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { v4 as uuidv4 } from 'uuid';
-
-const DEFAULT_ORG = 'dev-org';
+import { getOrganizationId } from '@/lib/session';
 
 export async function uploadFileToStorage(file: File, folder: string): Promise<string> {
   if (!file || file.size === 0) return '';
@@ -22,13 +21,15 @@ export async function uploadFileToStorage(file: File, folder: string): Promise<s
     },
   });
 
-  // Make public to get url easily (or use makePublic())
   await fileRef.makePublic();
   
   return `https://storage.googleapis.com/${bucket.name}/${filename}`;
 }
 
 export async function createCreativeAction(state: any, formData: FormData, redirectResponse: boolean = true) {
+  const orgId = await getOrganizationId();
+  if (!orgId) return { error: 'Não autorizado' };
+
   const campaignId = formData.get('campaignId') as string;
   const title = formData.get('title') as string;
   const description = formData.get('description') as string;
@@ -50,10 +51,10 @@ export async function createCreativeAction(state: any, formData: FormData, redir
 
   const generatedSku = skuInput || `SKU-${uuidv4().split('-')[0].toUpperCase()}`;
 
-  const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : [];
+  const tags = tagsStr ? tagsStr.split(',').map((t: string) => t.trim()).filter(Boolean) : [];
 
   const creative = {
-    organizationId: DEFAULT_ORG,
+    organizationId: orgId,
     campaignId,
     title,
     description,
@@ -83,9 +84,14 @@ export async function createCreativeAction(state: any, formData: FormData, redir
 }
 
 export async function duplicateCreativeAction(id: string, count: number) {
+  const orgId = await getOrganizationId();
+  if (!orgId) return { error: 'Não autorizado' };
+
   try {
     const doc = await db.collection('creatives').doc(id).get();
-    if (!doc.exists) throw new Error('Criativo não encontrado');
+    if (!doc.exists || doc.data()?.organizationId !== orgId) {
+      throw new Error('Criativo não encontrado ou acesso negado');
+    }
     
     const original = doc.data()!;
     const promises = [];
@@ -104,24 +110,27 @@ export async function duplicateCreativeAction(id: string, count: number) {
     }
 
     await Promise.all(promises);
-    revalidatePath('/dashboard/creatives');
+    revalidatePath('/dashboard/creatives', 'layout');
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error duplicating creative', error);
-    return { error: 'Falha ao duplicar' };
+    return { error: error.message || 'Falha ao duplicar' };
   }
 }
 
 export async function bulkDuplicateAction(campaignId: string, count: number) {
+  const orgId = await getOrganizationId();
+  if (!orgId) return { error: 'Não autorizado' };
+
   try {
     const snap = await db.collection('creatives')
       .where('campaignId', '==', campaignId)
-      .where('organizationId', '==', DEFAULT_ORG)
+      .where('organizationId', '==', orgId)
       .get();
       
     if (snap.empty) return { success: true };
 
-    const originalCreatives = snap.docs.map(d => ({ id: d.id, ...d.data() })) as any[];
+    const originalCreatives = snap.docs.map((d: any) => ({ id: d.id, ...d.data() })) as any[];
     const promises: any[] = [];
 
     originalCreatives.forEach(original => {
@@ -141,7 +150,7 @@ export async function bulkDuplicateAction(campaignId: string, count: number) {
     });
 
     await Promise.all(promises);
-    revalidatePath('/dashboard/creatives');
+    revalidatePath('/dashboard/creatives', 'layout');
     return { success: true };
   } catch (error) {
     console.error('Error in bulk duplication', error);
@@ -149,7 +158,68 @@ export async function bulkDuplicateAction(campaignId: string, count: number) {
   }
 }
 
+export async function updateCreativeAction(id: string, formData: FormData) {
+  const orgId = await getOrganizationId();
+  if (!orgId) return { error: 'Não autorizado' };
+
+  const title = formData.get('title') as string;
+  const description = formData.get('description') as string;
+  const price = formData.get('price') ? Number(formData.get('price')) : null;
+  const status = formData.get('status') as string;
+  const brand = formData.get('brand') as string;
+  const category = formData.get('category') as string;
+
+  try {
+    const docRef = db.collection('creatives').doc(id);
+    const doc = await docRef.get();
+
+    if (!doc.exists || doc.data()?.organizationId !== orgId) {
+      return { error: 'Criativo não encontrado ou acesso negado' };
+    }
+
+    await docRef.update({
+      title,
+      description,
+      price,
+      status,
+      brand,
+      category,
+      updatedAt: new Date().toISOString(),
+    });
+
+    revalidatePath('/dashboard/creatives', 'layout');
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating creative', error);
+    return { error: 'Falha ao atualizar criativo' };
+  }
+}
+
 export async function deleteCreativeAction(id: string) {
-  await db.collection('creatives').doc(id).delete();
-  revalidatePath('/dashboard/creatives');
+  console.log('SERVER: Chamando deleteCreativeAction para id:', id);
+  const orgId = await getOrganizationId();
+  if (!orgId) {
+    console.log('SERVER: deleteCreativeAction - Não autorizado');
+    return { error: 'Não autorizado' };
+  }
+
+  try {
+    console.log('SERVER: deleteCreativeAction - Verificando documento no Firestore...');
+    const docRef = db.collection('creatives').doc(id);
+    const doc = await docRef.get();
+    
+    if (doc.exists && doc.data()?.organizationId === orgId) {
+      console.log('SERVER: deleteCreativeAction - Deletando documento...');
+      await docRef.delete();
+      console.log('SERVER: deleteCreativeAction - Revalidando caminho...');
+      // revalidatePath('/dashboard/creatives', 'layout');
+      console.log('SERVER: deleteCreativeAction - Sucesso (Revalidação pulada para teste)!');
+      return { success: true };
+    }
+    console.log('SERVER: deleteCreativeAction - Documento não encontrado ou sem permissão');
+    return { error: 'Criativo não encontrado ou acesso negado' };
+  } catch (error) {
+    console.error('SERVER: deleteCreativeAction - ERRO FATAL:', error);
+    return { error: 'Falha ao excluir criativo' };
+  }
 }
