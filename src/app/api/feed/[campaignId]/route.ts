@@ -31,7 +31,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     };
 
     // 3. Generate XML dynamically
-    const xml = createXML(creatives, campaignsMap);
+    const xml = await createXML(creatives, campaignsMap);
 
     // 4. Return as XML proper response
     return new Response(xml, {

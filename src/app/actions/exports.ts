@@ -7,7 +7,7 @@ import * as Papa from 'papaparse';
 import * as xlsx from 'xlsx';
 import { Creative, Offer } from '@/types';
 
-export function createXML(creatives: any[], campaignsMap: any) {
+export async function createXML(creatives: any[], campaignsMap: any) {
   // TikTok Ads standard catalog format
   const root = create({ version: '1.0', encoding: 'UTF-8' }).ele('rss', { version: '2.0', 'xmlns:g': 'http://base.google.com/ns/1.0' }).ele('channel');
   
@@ -104,7 +104,7 @@ export async function generateExportAction(state: any, formData: FormData) {
   let extension = '';
 
   if (type === 'xml') {
-    const xml = createXML(creatives, campaignsMap);
+    const xml = await createXML(creatives, campaignsMap);
     buffer = Buffer.from(xml, 'utf-8');
     contentType = 'application/xml';
     extension = 'xml';
