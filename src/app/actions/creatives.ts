@@ -158,19 +158,59 @@ export async function bulkDuplicateAction(campaignId: string, count: number) {
   }
 }
 
-export async function deleteCreativeAction(id: string) {
+export async function updateCreativeAction(id: string, formData: FormData) {
   const orgId = await getOrganizationId();
-  if (!orgId) throw new Error('Não autorizado');
+  if (!orgId) return { error: 'Não autorizado' };
+
+  const title = formData.get('title') as string;
+  const description = formData.get('description') as string;
+  const price = formData.get('price') ? Number(formData.get('price')) : null;
+  const status = formData.get('status') as string;
+  const brand = formData.get('brand') as string;
+  const category = formData.get('category') as string;
 
   try {
-    const doc = await db.collection('creatives').doc(id).get();
-    if (doc.exists && doc.data()?.organizationId === orgId) {
-      await db.collection('creatives').doc(id).delete();
+    const docRef = db.collection('creatives').doc(id);
+    const doc = await docRef.get();
+
+    if (!doc.exists || doc.data()?.organizationId !== orgId) {
+      return { error: 'Criativo não encontrado ou acesso negado' };
     }
+
+    await docRef.update({
+      title,
+      description,
+      price,
+      status,
+      brand,
+      category,
+      updatedAt: new Date().toISOString(),
+    });
+
+    revalidatePath('/dashboard/creatives');
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating creative', error);
+    return { error: 'Falha ao atualizar criativo' };
+  }
+}
+
+export async function deleteCreativeAction(id: string) {
+  const orgId = await getOrganizationId();
+  if (!orgId) return { error: 'Não autorizado' };
+
+  try {
+    const docRef = db.collection('creatives').doc(id);
+    const doc = await docRef.get();
+    
+    if (doc.exists && doc.data()?.organizationId === orgId) {
+      await docRef.delete();
+      revalidatePath('/dashboard/creatives');
+      return { success: true };
+    }
+    return { error: 'Criativo não encontrado ou acesso negado' };
   } catch (error) {
     console.error('Error deleting creative', error);
-    throw new Error('Fallback action failure');
+    return { error: 'Falha ao excluir criativo' };
   }
-  
-  revalidatePath('/dashboard/creatives');
 }

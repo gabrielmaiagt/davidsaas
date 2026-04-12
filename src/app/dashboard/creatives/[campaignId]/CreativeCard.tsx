@@ -24,8 +24,16 @@ export default function CreativeCard({ creative }: { creative: any }) {
   const handleDelete = async () => {
     if (!confirm('Tem certeza que deseja excluir este vídeo? Isso removerá ele do feed de anúncios.')) return;
     setIsPending(true);
-    const result = await deleteCreativeAction(creative.id);
-    setIsPending(false);
+    try {
+      const result = await deleteCreativeAction(creative.id);
+      if (result?.error) {
+        alert(result.error);
+      }
+    } catch (err) {
+      alert('Ocorreu um erro ao tentar excluir o criativo.');
+    } finally {
+      setIsPending(false);
+    }
   };
 
   return (
