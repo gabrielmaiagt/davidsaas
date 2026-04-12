@@ -21,6 +21,9 @@ function getAdminApp() {
     console.log('FIREBASE: Key starts with BEGIN?', privateKey.startsWith('-----BEGIN PRIVATE KEY-----'));
     console.log('FIREBASE: Key ends with END?', privateKey.trim().endsWith('-----END PRIVATE KEY-----'));
 
+    // Fallback inteligente para o nome do bucket se a variável estiver faltando
+    const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || (projectId ? `${projectId}.firebasestorage.app` : undefined);
+
     if (projectId && clientEmail && privateKey.includes('BEGIN PRIVATE KEY')) {
       console.log('FIREBASE: Attempting credential.cert initialization...');
       return admin.initializeApp({
@@ -29,12 +32,12 @@ function getAdminApp() {
           clientEmail,
           privateKey,
         }),
-        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+        storageBucket,
       });
     } else {
       console.warn('FIREBASE: Missing credentials or malformed key. Access will fail.');
       return admin.initializeApp({
-        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+        storageBucket,
       });
     }
   } catch (error) {
