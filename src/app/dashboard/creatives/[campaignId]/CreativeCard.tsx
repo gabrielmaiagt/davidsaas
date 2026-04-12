@@ -29,62 +29,68 @@ export default function CreativeCard({ creative }: { creative: any }) {
   };
 
   return (
-    <div className="group relative bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden hover:border-indigo-500/50 transition-all shadow-sm flex flex-col h-full">
+    <div className="group relative bg-surface-container-low border border-outline-variant/10 rounded-xl overflow-hidden hover:border-primary/40 transition-all shadow-sm flex flex-col h-full glow-primary">
       {/* Media Preview */}
-      <div className="relative aspect-[9/16] bg-zinc-950 overflow-hidden">
+      <div className="relative aspect-[9/16] bg-background overflow-hidden">
         {creative.imageUrl ? (
-          <img src={creative.imageUrl} alt={creative.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          <img 
+            src={creative.imageUrl} 
+            alt={creative.title} 
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-75 group-hover:brightness-100" 
+          />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-zinc-900">
-             <Play className="w-6 h-6 text-zinc-800" />
+          <div className="w-full h-full flex items-center justify-center bg-surface-container-low">
+             <Video className="w-6 h-6 text-on-surface-variant/20" />
           </div>
         )}
         
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-60"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-80"></div>
         
         {/* Play Highlight */}
         {creative.videoUrl && (
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <Link href={creative.videoUrl} target="_blank" className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center hover:scale-110 transition-all">
-              <Play className="w-4 h-4 text-white fill-white" />
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20">
+            <Link href={creative.videoUrl} target="_blank" className="w-12 h-12 bg-primary/20 backdrop-blur-md border border-primary/30 rounded-full flex items-center justify-center hover:scale-110 transition-all shadow-2xl">
+              <Play className="w-5 h-5 text-primary fill-primary" />
             </Link>
           </div>
         )}
 
         {/* Status Badge */}
-        <div className="absolute top-2 left-2">
-          <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded border ${
+        <div className="absolute top-3 left-3 z-30">
+          <span className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${
             creative.status === 'active' 
-              ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' 
-              : 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'
-          } uppercase tracking-widest`}>
-            {creative.status === 'active' ? 'ON' : 'OFF'}
+              ? 'bg-primary/10 text-primary border-primary/20' 
+              : 'bg-on-surface-variant/10 text-on-surface-variant border-on-surface-variant/20'
+          } uppercase tracking-[0.2em]`}>
+            {creative.status === 'active' ? 'LIVE' : 'IDLE'}
           </span>
         </div>
       </div>
 
       {/* Content */}
-      <div className="p-2.5 flex-1 flex flex-col">
-        <h4 className="text-[11px] font-semibold text-white truncate mb-0.5">{creative.title}</h4>
-        <p className="text-[9px] text-zinc-500 font-mono mb-2">{creative.sku}</p>
+      <div className="p-3 flex-1 flex flex-col bg-surface-container/30">
+        <h4 className="text-[11px] font-black text-white truncate mb-0.5 font-headline tracking-tight group-hover:text-primary transition-colors">{creative.title}</h4>
+        <p className="text-[9px] text-on-surface-variant font-bold uppercase tracking-widest opacity-60 flex items-center gap-1">
+           SKU: {creative.sku.slice(-8)}
+        </p>
         
-        <div className="mt-auto flex items-center justify-between gap-1 border-t border-zinc-800/50 pt-2">
+        <div className="mt-4 flex items-center justify-between gap-1 border-t border-outline-variant/10 pt-3">
            {/* Actions */}
-           <div className="flex items-center gap-0.5">
+           <div className="flex items-center gap-1">
              <Link 
                href={`/dashboard/creatives/${creative.id}/edit`} 
-               className="p-1.5 text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-lg transition-all"
+               className="p-2 text-on-surface-variant hover:text-white hover:bg-surface-container-high rounded-lg transition-all"
                title="Editar"
              >
-               <Pencil className="w-3 h-3" />
+               <Pencil className="w-3.5 h-3.5" />
              </Link>
              <button 
                onClick={handleDelete}
                disabled={isPending}
-               className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
+               className="p-2 text-on-surface-variant hover:text-secondary hover:bg-secondary/10 rounded-lg transition-all"
                title="Excluir"
              >
-               <Trash2 className="w-3 h-3" />
+               <Trash2 className="w-3.5 h-3.5" />
              </button>
            </div>
 
@@ -93,44 +99,44 @@ export default function CreativeCard({ creative }: { creative: any }) {
              <button 
                onClick={() => setShowOptions(!showOptions)}
                disabled={isPending}
-               className="p-1.5 bg-zinc-800 text-indigo-400 hover:bg-indigo-600 hover:text-white rounded-lg transition-all flex items-center gap-1 shadow-sm"
+               className="p-2 bg-surface-container-highest text-primary hover:bg-primary hover:text-on-primary rounded-lg transition-all flex items-center gap-2 shadow-sm border border-outline-variant/10"
                title="Duplicar este vídeo"
              >
-               {isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Copy className="w-3 h-3" />}
-               <span className="text-[9px] font-bold uppercase">Clon</span>
+               {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Copy className="w-3.5 h-3.5" />}
+               <span className="text-[10px] font-black uppercase tracking-widest">CLONAR</span>
              </button>
 
              {showOptions && !isPending && (
-               <div className="absolute bottom-10 right-0 w-32 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl p-1.5 z-[60] animate-in fade-in slide-in-from-bottom-2 duration-100">
-                 <div className="grid grid-cols-2 gap-1 mb-1.5">
-                    {[2, 3, 5, 10].map((n) => (
-                    <button
-                        key={n}
-                        onClick={() => handleDuplicate(n)}
-                        className="w-full text-center py-1 text-[10px] text-zinc-300 hover:bg-indigo-600 hover:text-white rounded-md transition-colors font-medium border border-zinc-800"
-                    >
-                        {n}x
-                    </button>
-                    ))}
-                 </div>
-                 
-                 <div className="flex items-center gap-1 bg-zinc-950 border border-zinc-800 rounded px-1.5 py-0.5 mt-1">
-                    <input 
-                      type="number" 
-                      min="1"
-                      placeholder="+" 
-                      value={manualCount}
-                      onChange={(e) => setManualCount(e.target.value)}
-                      className="bg-transparent border-none text-[10px] text-white p-0 focus:ring-0 w-full"
-                    />
-                    <button 
-                      onClick={() => manualCount && handleDuplicate(parseInt(manualCount))}
-                      disabled={!manualCount}
-                      className="text-indigo-400 hover:text-white disabled:opacity-30"
-                    >
-                        <ChevronRight className="w-3 h-3" />
-                    </button>
-                 </div>
+               <div className="absolute bottom-12 right-0 w-36 bg-surface-container-high border border-outline-variant/20 rounded-xl shadow-2xl p-2 z-[60] animate-in fade-in slide-in-from-bottom-2 duration-150">
+                  <div className="grid grid-cols-2 gap-1.5 mb-2">
+                     {[2, 3, 5, 10].map((n) => (
+                      <button
+                          key={n}
+                          onClick={() => handleDuplicate(n)}
+                          className="w-full text-center py-2 text-[10px] text-on-surface-variant hover:bg-primary hover:text-on-primary rounded-lg transition-all font-black border border-outline-variant/10"
+                      >
+                          {n}x
+                      </button>
+                     ))}
+                  </div>
+                  
+                  <div className="flex items-center gap-2 bg-background border border-outline-variant/20 rounded-lg px-2 py-1">
+                     <input 
+                       type="number" 
+                       min="1"
+                       placeholder="Manual..." 
+                       value={manualCount}
+                       onChange={(e) => setManualCount(e.target.value)}
+                       className="bg-transparent border-none text-[10px] text-on-surface p-0 focus:ring-0 w-full font-bold placeholder:text-on-surface-variant/30"
+                     />
+                     <button 
+                       onClick={() => manualCount && handleDuplicate(parseInt(manualCount))}
+                       disabled={!manualCount}
+                       className="text-primary hover:text-white disabled:opacity-30"
+                     >
+                         <ChevronRight className="w-3.5 h-3.5" />
+                     </button>
+                  </div>
                </div>
              )}
            </div>
