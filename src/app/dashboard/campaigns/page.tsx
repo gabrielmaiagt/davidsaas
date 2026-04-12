@@ -6,9 +6,15 @@ import SetDefaultButton from './SetDefaultButton';
 import DeleteCampaignButton from './DeleteCampaignButton';
 import FeedUrlInput from './FeedUrlInput';
 
+import { headers } from 'next/headers';
+
 export const dynamic = 'force-dynamic';
 
 export default async function CampaignsPage() {
+  const headersList = await headers();
+  const host = headersList.get('host') || 'localhost:3000';
+  const protocol = host.includes('localhost') ? 'http' : 'https';
+  const baseUrl = `${protocol}://${host}`;
   const snapshot = await db.collection('campaigns')
     .where('organizationId', '==', 'dev-org')
     .orderBy('createdAt', 'desc')
@@ -74,7 +80,7 @@ export default async function CampaignsPage() {
                   
                   <div className="mt-4 pt-3 border-t border-zinc-800/60">
                     <p className="text-xs text-zinc-500 mb-1">Live Feed URL (Auto-sync) 👇</p>
-                    <FeedUrlInput url={`http://localhost:3000/api/feed/${campaign.id}`} />
+                    <FeedUrlInput url={`${baseUrl}/api/feed/${campaign.id}`} />
                   </div>
                 </div>
               </div>
