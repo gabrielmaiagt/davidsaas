@@ -112,11 +112,11 @@ export async function generateExportAction(state: any, formData: FormData) {
   }
   
   const snap = await query.get();
-  const creatives = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const creatives = snap.docs.map((d: any) => ({ id: d.id, ...d.data() }));
 
   // 2. Fetch Campaigns for Mapping URLs
   const campaignsSnap = await db.collection('campaigns').where('organizationId', '==', 'dev-org').get();
-  const campaignsMap = campaignsSnap.docs.reduce((acc, doc) => {
+  const campaignsMap = campaignsSnap.docs.reduce((acc: any, doc: any) => {
     acc[doc.id] = doc.data();
     return acc;
   }, {} as any);

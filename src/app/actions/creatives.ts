@@ -121,7 +121,7 @@ export async function bulkDuplicateAction(campaignId: string, count: number) {
       
     if (snap.empty) return { success: true };
 
-    const originalCreatives = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const originalCreatives = snap.docs.map(d => ({ id: d.id, ...d.data() })) as any[];
     const promises: any[] = [];
 
     originalCreatives.forEach(original => {

@@ -60,16 +60,16 @@ export default async function CreativesPage() {
            </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
           {folders.map((folder) => (
             <Link 
               key={folder.id} 
               href={`/dashboard/creatives/${folder.id}`}
-              className="group bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:bg-zinc-800/50 hover:border-indigo-500/30 transition-all shadow-sm"
+              className="group bg-zinc-900 border border-zinc-800 rounded-2xl p-4 hover:bg-zinc-800/50 hover:border-indigo-500/30 transition-all shadow-sm"
             >
-              <div className="flex justify-between items-start mb-6">
-                 <div className="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-all">
-                    <Folder className="w-6 h-6" />
+              <div className="flex justify-between items-start mb-4">
+                 <div className="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-400 group-hover:bg-indigo-500 group-hover:text-white transition-all">
+                    <Folder className="w-5 h-5" />
                  </div>
                  <div className="flex -space-x-2">
                     {[...Array(Math.min(folder.count, 3))].map((_, i) => (
@@ -96,12 +96,12 @@ export default async function CreativesPage() {
           {/* Action Card: New Campaign Shortcut */}
           <Link 
             href="/dashboard/campaigns/new"
-            className="border-2 border-dashed border-zinc-800 rounded-2xl p-5 flex flex-col items-center justify-center text-center hover:border-zinc-700 transition-colors group"
+            className="border-2 border-dashed border-zinc-800 rounded-2xl p-4 flex flex-col items-center justify-center text-center hover:border-zinc-700 transition-colors group min-h-[140px]"
           >
-             <div className="w-10 h-10 rounded-full bg-zinc-900 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+             <div className="w-10 h-10 rounded-full bg-zinc-900 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                 <Plus className="w-5 h-5 text-zinc-500" />
              </div>
-             <p className="text-sm font-medium text-zinc-400">Nova Pasta</p>
+             <p className="text-xs font-medium text-zinc-400">Nova Pasta</p>
           </Link>
         </div>
       )}

@@ -10,8 +10,9 @@ export default function ExportForm({ campaigns }: { campaigns: Campaign[] }) {
 
   useEffect(() => {
     // Se a exportação funcionou e retornou a URL, abre numa nova aba para download direto
-    if (state?.fileUrl) {
-      window.open(state.fileUrl, '_blank');
+    const s = state as any;
+    if (s?.fileUrl) {
+      window.open(s.fileUrl, '_blank');
     }
   }, [state]);
 
@@ -55,7 +56,7 @@ export default function ExportForm({ campaigns }: { campaigns: Campaign[] }) {
         )}
       </button>
 
-      {state?.fileUrl && (
+      {(state as any)?.fileUrl && (
         <p className="text-xs text-emerald-400 text-center mt-2 font-medium">Exportação gerada com sucesso!</p>
       )}
     </form>

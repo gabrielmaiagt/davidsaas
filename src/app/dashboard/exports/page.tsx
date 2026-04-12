@@ -68,7 +68,7 @@ export default async function ExportsPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-[#a1a1aa]">
-                        {item.filtersApplied?.offerId ? offers.find(o => o.id === item.filtersApplied.offerId)?.name || 'Específica' : 'Todas as Ofertas'}
+                        {item.filtersApplied?.campaignId ? (campaigns as any).find((o: any) => o.id === item.filtersApplied.campaignId)?.name || 'Específica' : 'Todas as Ofertas'}
                       </td>
                       <td className="px-6 py-4 text-right">
                         <a 
