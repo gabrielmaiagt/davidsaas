@@ -79,7 +79,7 @@ function createXLSX(creatives: any[], offersMap: any) {
   return xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
 }
 
-export async function generateExportAction(formData: FormData) {
+export async function generateExportAction(state: any, formData: FormData) {
   const type = formData.get('type') as 'xml' | 'csv' | 'xlsx';
   const offerId = formData.get('offerId') as string;
 

@@ -28,7 +28,7 @@ export async function uploadFileToStorage(file: File, folder: string): Promise<s
   return `https://storage.googleapis.com/${bucket.name}/${filename}`;
 }
 
-export async function createCreativeAction(formData: FormData) {
+export async function createCreativeAction(state: any, formData: FormData) {
   const offerId = formData.get('offerId') as string;
   const title = formData.get('title') as string;
   const description = formData.get('description') as string;

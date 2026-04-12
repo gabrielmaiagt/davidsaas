@@ -4,7 +4,7 @@ import { db } from '@/lib/firebase-admin';
 import { setSession } from '@/lib/session';
 import { redirect } from 'next/navigation';
 
-export async function loginAction(formData: FormData) {
+export async function loginAction(state: any, formData: FormData) {
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
 

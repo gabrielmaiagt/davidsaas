@@ -6,8 +6,12 @@ import { redirect } from 'next/navigation';
 
 const DEFAULT_ORG = 'dev-org';
 
-export async function createOfferAction(data: { name: string, status: string, description: string, defaultFinalUrl: string, defaultCategory: string }) {
-  const { name, status, description, defaultFinalUrl, defaultCategory } = data;
+export async function createOfferAction(state: any, formData: FormData) {
+  const name = formData.get('name') as string;
+  const status = formData.get('status') as string;
+  const description = formData.get('description') as string;
+  const defaultFinalUrl = formData.get('defaultFinalUrl') as string;
+  const defaultCategory = formData.get('defaultCategory') as string;
   
   const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
   
