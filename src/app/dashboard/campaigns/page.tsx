@@ -104,7 +104,7 @@ export default async function CampaignsPage() {
                 
                 <div className="mt-4 pt-4 border-t border-outline-variant/10">
                   <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em] mb-3">Live Feed URL (Auto-sync) 👇</p>
-                  <FeedUrlInput url={`${baseUrl}/api/feed/${campaign.id}`} />
+                  <FeedUrlInput id={campaign.id} />
                 </div>
               </div>
 

@@ -1,14 +1,46 @@
 'use client';
 
-export default function FeedUrlInput({ url }: { url: string }) {
+import { useEffect, useState } from 'react';
+import { Copy, Check } from 'lucide-react';
+
+export default function FeedUrlInput({ id }: { id: string }) {
+  const [fullUrl, setFullUrl] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    // Paga o domínio real do navegador
+    const origin = window.location.origin;
+    setFullUrl(`${origin}/api/feed/${id}`);
+  }, [id]);
+
+  const copyToClipboard = () => {
+    if (!fullUrl) return;
+    navigator.clipboard.writeText(fullUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
-    <input 
-      type="text" 
-      readOnly 
-      value={url}
-      className="w-full bg-zinc-950 text-xs text-indigo-300 border border-zinc-800 rounded px-2 py-1 focus:outline-none cursor-pointer"
-      onClick={(e) => (e.target as HTMLInputElement).select()}
-      title="Clique para selecionar e copiar a URL do catálogo"
-    />
+    <div className="flex gap-2">
+      <input 
+        type="text" 
+        readOnly 
+        value={fullUrl || 'Carregando link...'}
+        className="flex-1 bg-zinc-950 text-[10px] text-primary/80 border border-zinc-800 rounded-lg px-3 py-2 focus:outline-none cursor-pointer font-mono"
+        onClick={copyToClipboard}
+      />
+      <button 
+        type="button"
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); copyToClipboard(); }}
+        className={`px-3 py-2 rounded-lg border transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest ${
+          copied 
+            ? 'bg-secondary/20 border-secondary/40 text-secondary scale-105 shadow-[0_0_15px_rgba(255,145,201,0.2)]' 
+            : 'bg-white/5 border-white/5 text-on-surface-variant hover:bg-white/10'
+        }`}
+      >
+        {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+        {copied ? 'COPIADO!' : 'COPIAR'}
+      </button>
+    </div>
   );
 }

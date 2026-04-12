@@ -44,22 +44,7 @@ export default function FolderCard({ folder }: { folder: any }) {
           <span className="text-[9px] font-black text-on-surface-variant uppercase tracking-[0.2em] whitespace-nowrap">
             {folder.count} CRIATIVOS
           </span>
-          
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); copyLink(e as any); }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all duration-300 border ${
-                copied 
-                  ? 'bg-secondary/20 text-secondary border-secondary/40 scale-105 shadow-[0_0_15px_rgba(255,145,201,0.2)]' 
-                  : 'bg-white/5 text-on-surface-variant border-white/5 hover:border-primary/30 hover:text-white hover:bg-white/10'
-              }`}
-            >
-              {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-              <span className="hidden xs:inline">{copied ? 'COPIADO!' : 'COPIAR FEED'}</span>
-              <span className="xs:hidden">{copied ? 'OK' : 'LINK'}</span>
-            </button>
-            <ChevronRight className="w-4 h-4 text-on-surface-variant group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0" />
-          </div>
+          <ChevronRight className="w-4 h-4 text-on-surface-variant group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0" />
         </div>
       </Link>
     </div>
