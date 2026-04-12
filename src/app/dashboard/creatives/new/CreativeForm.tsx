@@ -256,7 +256,7 @@ export default function CreativeForm({ campaigns }: { campaigns: Campaign[] }) {
                              item.status === 'success' ? 'text-emerald-500' : 
                              item.status === 'error' ? 'text-red-500' : 'text-indigo-400'
                            }`}>
-                             {item.status}
+                             {item.status} {item.error && `- ${item.error}`}
                            </span>
                         </div>
                      </div>
