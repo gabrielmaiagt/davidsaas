@@ -40,6 +40,18 @@ export default function EditCampaignForm({ campaign }: { campaign: Campaign }) {
             className="w-full bg-zinc-950 border border-zinc-800 text-zinc-100 rounded-md px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors text-sm"
           />
         </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-zinc-300" htmlFor="defaultDescription">Texto do Anúncio Padrão (Copy)</label>
+          <textarea 
+            id="defaultDescription" 
+            name="defaultDescription" 
+            rows={4}
+            defaultValue={campaign.defaultDescription}
+            placeholder="Digite aqui a copy que aparecerá nos seus anúncios..."
+            className="w-full bg-zinc-950 border border-zinc-800 text-zinc-100 rounded-md px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors text-sm"
+          ></textarea>
+        </div>
       </div>
 
       {/* Seção 2: Padrões do TikTok Feed */}

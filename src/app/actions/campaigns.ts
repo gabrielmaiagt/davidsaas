@@ -10,6 +10,7 @@ const DEFAULT_ORG = 'dev-org';
 export async function createCampaignAction(state: any, formData: FormData) {
   const name = formData.get('name') as string;
   const defaultLink = formData.get('defaultLink') as string;
+  const defaultDescription = formData.get('defaultDescription') as string || '';
   const defaultPrice = Number(formData.get('defaultPrice')) || 19.90;
   const currency = formData.get('currency') as string || 'BRL';
   const brand = formData.get('brand') as string || 'Premium Store';
@@ -33,6 +34,7 @@ export async function createCampaignAction(state: any, formData: FormData) {
       slug,
       isDefault,
       defaultLink,
+      defaultDescription,
       defaultPrice,
       currency,
       brand,
@@ -81,6 +83,7 @@ export async function setDefaultCampaignAction(campaignId: string) {
 export async function updateCampaignAction(id: string, state: any, formData: FormData) {
   const name = formData.get('name') as string;
   const defaultLink = formData.get('defaultLink') as string;
+  const defaultDescription = formData.get('defaultDescription') as string;
   const currency = formData.get('currency') as string;
   const brand = formData.get('brand') as string;
   const category = formData.get('category') as string;
@@ -93,6 +96,7 @@ export async function updateCampaignAction(id: string, state: any, formData: For
     await db.collection('campaigns').doc(id).update({
       name,
       defaultLink,
+      defaultDescription,
       currency,
       brand,
       category,

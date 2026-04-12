@@ -26,6 +26,7 @@ export interface Campaign {
   
   // Configurações Padrão de Catálogo (Uso para Feed)
   defaultLink: string;
+  defaultDescription: string;
   defaultPrice: number;
   currency: string; // Ex: BRL, USD
   brand: string;

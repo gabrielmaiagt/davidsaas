@@ -31,7 +31,7 @@ export async function createXML(creatives: any[], campaignsMap: any) {
     const xmlItem = root.ele('item');
     xmlItem.ele('g:id').txt(item.sku || item.id);
     xmlItem.ele('g:title').txt(item.title);
-    xmlItem.ele('g:description').txt(item.description || item.title);
+    xmlItem.ele('g:description').txt(item.description || campaign.defaultDescription || item.title);
     xmlItem.ele('g:link').txt(link);
     xmlItem.ele('g:image_link').txt(item.imageUrl || '');
     if (item.videoUrl) xmlItem.ele('g:video_link').txt(item.videoUrl);
@@ -60,7 +60,7 @@ function createCSV(creatives: any[], campaignsMap: any) {
     return {
       id: item.sku || item.id,
       title: item.title,
-      description: item.description,
+      description: item.description || campaign.defaultDescription || item.title,
       availability: item.availability || campaign.availability || 'in stock',
       condition: item.condition || campaign.condition || 'new',
       price: `${priceVal} ${currencyVal}`,
@@ -84,7 +84,7 @@ function createXLSX(creatives: any[], campaignsMap: any) {
     return {
       id: item.sku || item.id,
       title: item.title,
-      description: item.description,
+      description: item.description || campaign.defaultDescription || item.title,
       availability: item.availability || campaign.availability || 'in stock',
       condition: item.condition || campaign.condition || 'new',
       price: `${priceVal} ${currencyVal}`,
