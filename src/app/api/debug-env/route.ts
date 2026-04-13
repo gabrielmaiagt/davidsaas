@@ -8,7 +8,8 @@ export async function GET() {
     projectId: !!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
     clientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
     privateKey: !!process.env.FIREBASE_PRIVATE_KEY,
-    privateKey_length: process.env.FIREBASE_PRIVATE_KEY?.length || 0,
+    privateKeyB64: !!process.env.FIREBASE_PRIVATE_KEY_B64,
+    privateKeyB64_length: process.env.FIREBASE_PRIVATE_KEY_B64?.length || 0,
     storageBucket: !!process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
     nodeEnv: process.env.NODE_ENV,
   };
