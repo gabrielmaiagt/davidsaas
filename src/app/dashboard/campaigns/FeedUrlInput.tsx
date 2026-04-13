@@ -10,7 +10,7 @@ export default function FeedUrlInput({ id }: { id: string }) {
   useEffect(() => {
     // Paga o domínio real do navegador
     const origin = window.location.origin;
-    setFullUrl(`${origin}/api/feed/${id}`);
+    setFullUrl(`${origin}/api/feed/${id}.xml`);
   }, [id]);
 
   const copyToClipboard = () => {

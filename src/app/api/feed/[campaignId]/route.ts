@@ -6,7 +6,12 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ campaignId: string }> }) {
   const resolvedParams = await params;
-  const campaignId = resolvedParams.campaignId;
+  let campaignId = resolvedParams.campaignId;
+
+  // Se o ID vier com .xml (ex: ID.xml), limpamos para buscar no banco
+  if (campaignId.endsWith('.xml')) {
+    campaignId = campaignId.replace('.xml', '');
+  }
 
   if (!campaignId) {
     return new Response('No campaign ID provided', { status: 400 });
