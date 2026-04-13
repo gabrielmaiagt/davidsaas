@@ -19,23 +19,20 @@ function getAdminApp() {
       privateKey = process.env.FIREBASE_PRIVATE_KEY || '';
     }
 
-    // --- RECONSTRUÇÃO ROBUSTA DE PEM ---
-    // Remove cabeçalhos, rodapés e qualquer caractere de escape/espaço
+    // --- RECONSTRUÇÃO ULTRA-ROBUSTA DE PEM ---
+    // Remove qualquer versão de cabeçalho/rodapé (com ou sem espaços/hífens variados)
     const strippedKey = privateKey
-      .replace(/-----BEGIN PRIVATE KEY-----/g, '')
-      .replace(/-----END PRIVATE KEY-----/g, '')
-      .replace(/\\n/g, '')
-      .replace(/\s/g, '');
+      .replace(/-----[^-]*-----/g, '') // Remove qualquer coisa entre 5 hífens (cabeçalhos/rodapés)
+      .replace(/\\n/g, '')             // Remove \n literal
+      .replace(/\s/g, '');             // Remove qualquer espaço, quebra de linha real ou tab
 
     // Reconstrói com quebras de linha a cada 64 caracteres (padrão RFC/OpenSSL)
+    // Isso garante que o motor de criptografia do Node não reclame de formato.
     const matches = strippedKey.match(/.{1,64}/g);
-    const formattedKey = `-----BEGIN PRIVATE KEY-----\n${matches?.join('\n')}\n-----END PRIVATE KEY-----\n`;
+    privateKey = `-----BEGIN PRIVATE KEY-----\n${matches?.join('\n')}\n-----END PRIVATE KEY-----\n`;
     
-    // Sobrescreve com a versão limpa
-    privateKey = formattedKey;
-
     console.log('FIREBASE: Project:', projectId);
-    console.log('FIREBASE: Key Length (Formatted):', privateKey.length);
+    console.log('FIREBASE: Key Length (Reconstructed):', privateKey.length);
     console.log('FIREBASE: Ready for Auth?', privateKey.includes('BEGIN PRIVATE KEY'));
 
     const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || (projectId ? `${projectId}.firebasestorage.app` : undefined);
