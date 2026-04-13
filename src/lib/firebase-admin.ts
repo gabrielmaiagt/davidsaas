@@ -32,8 +32,6 @@ function getAdminApp() {
     console.log('FIREBASE: Key Length:', privateKey.length);
     console.log('FIREBASE: Ready for Auth?', privateKey.includes('BEGIN PRIVATE KEY'));
 
-    const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || (projectId ? `${projectId}.firebasestorage.app` : undefined);
-
     if (projectId && clientEmail && privateKey.includes('BEGIN PRIVATE KEY')) {
       console.log('FIREBASE: Initializing with formatted PEM...');
       return admin.initializeApp({
