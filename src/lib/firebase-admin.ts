@@ -18,9 +18,13 @@ function getAdminApp() {
       privateKey = process.env.FIREBASE_PRIVATE_KEY || '';
     }
 
-    // Limpeza padrão (idêntica ao localhost)
-    // Remove aspas acidentais e converte \n literais para quebras reais
-    privateKey = privateKey.trim().replace(/^["']|["']$/g, '').replace(/\\n/g, '\n');
+    // Limpeza ultra-agressiva (idêntica ao localhost + remoção de caracteres invisíveis)
+    // Remove aspas, espaços de largura zero, e converte \n literais
+    privateKey = privateKey
+      .trim()
+      .replace(/^["']|["']$/g, '')
+      .replace(/[\u200b\u00a0\u180e\u2000-\u200b\u202f\u205f\u3000\ufeff]/g, '')
+      .replace(/\\n/g, '\n');
 
     console.log('FIREBASE: Project:', projectId);
     console.log('FIREBASE: Key Length:', privateKey.length);
